@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: probe-app
+  namespace: workload
+  labels:
+    app: probe-app
+spec:
+  selector:
+    matchLabels:
+      name: probe-app
+  template:
+    metadata:
+      labels:
+        name: probe-app
+    spec:
+      containers:
+      - name: probe-app
+        image: yaryorku/rli-experiment-yorku:latest
+        ports:
+          - name: http
+            containerPort: 3000
+            hostPort: 3000
+            protocol: TCP
+        command: ["npm"]
+        args: ["start"]
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: probe-app
+  namespace: workload
+spec:
+  type: NodePort
+  externalTrafficPolicy: Local
+  selector:
+    name: probe-app
+  ports:
+  - name: http
+    protocol: TCP
+    port: 3000
+    targetPort: 3000

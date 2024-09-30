@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb
+  namespace: acme-air
+spec:
+  replicas: 1
+  selector:
+   matchLabels:
+    app: mongodb
+  template:
+   metadata:
+      labels:
+       app: mongodb
+   spec:
+    containers:
+    - name: mongodb
+      image: mongo:5.0
+    nodeSelector:
+      kubernetes.io/hostname: ip-172-31-25-148.us-east-2.compute.internal
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-service
+  namespace: acme-air
+spec:
+  ports:
+  - name: http
+    protocol: TCP
+    port: 27017
+    targetPort: 27017
+  selector:
+    app: mongodb
+

@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodered
+  namespace: iot-app
+spec:
+  replicas: 1
+  selector:
+   matchLabels:
+    app: nodered
+  template:
+   metadata:
+      labels:
+       app: nodered
+   spec:
+    nodeName: ip-172-30-0-144.ec2.internal
+    containers:
+    - name: nodered
+      image: yaryorku/node-red-inter-york:latest
+###### Mount the config map
+#      volumeMounts:
+#      - name: mnt
+#        mountPath: /data/flows.json
+#        subPath: flows.json
+#      - name: mnt-pkg
+#        mountPath: /usr/src/node-red/package.json
+#        subPath: package.json
+#    volumes:
+#    - name: mnt
+#      configMap:
+#        name: nodered-flow
+#    - name: mnt-pkg
+#      configMap:
+#        name: nodered-package
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mosquitto
+  namespace: iot-app
+spec:
+  replicas: 1
+  selector:
+   matchLabels:
+    app: mosquitto
+  template:
+   metadata:
+      labels:
+       app: mosquitto
+   spec:
+    nodeName: ip-172-30-0-144.ec2.internal
+    containers:
+    - name: mosquitto
+      image: eclipse-mosquitto
+###### Mount the config map
+      volumeMounts:
+      - name: mnt
+        mountPath: /mosquitto/config/mosquitto.conf
+        subPath: mosquitto.conf
+#      - name: mnt-pkg
+#        mountPath: /usr/src/node-red/package.json
+#        subPath: package.json
+    volumes:
+    - name: mnt
+      configMap:
+        name: mosquitto-conf
+#    - name: mnt-pkg
+#      configMap:
+#        name: nodered-package
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: influxdb
+  namespace: iot-app
+spec:
+  replicas: 1
+  selector:
+   matchLabels:
+    app: influxdb
+  template:
+   metadata:
+      labels:
+       app: influxdb
+   spec:
+    nodeName: ip-172-30-3-60.ec2.internal
+    containers:
+    - name: influxdb
+      image: influxdb:latest
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodered-service
+  namespace: iot-app
+spec:
+  ports:
+  - name: http
+    protocol: TCP
+    port: 1880
+    targetPort: 1880
+  selector:
+    app: nodered
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mosquitto-service
+  namespace: iot-app
+spec:
+  ports:
+  - name: http
+    protocol: TCP
+    port: 1883
+    targetPort: 1883
+  selector:
+    app: mosquitto

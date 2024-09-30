@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: acme-web
+  namespace: acme-air
+spec:
+  replicas: 1
+  selector:
+   matchLabels:
+    app: acme-web
+  template:
+   metadata:
+      labels:
+       app: acme-web
+   spec:
+    containers:
+    - name: acme-web
+      image: yaryorku/acme-experiment-yorku:latest
+      env:
+       - name: MONGO_PORT
+         value: "27017"
+       - name: MONGO_PORT_27017_TCP_ADDR
+         value: "172.31.17.241"
+       - name: MONGO_PORT_27017_TCP_PORT
+         value: "27017"
+      command: ["node"]
+      args: ["app.js"]
+    nodeSelector:
+      kubernetes.io/hostname: ip-172-31-42-100.us-east-2.compute.internal
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: acme-web-service
+  namespace: acme-air
+spec:
+  ports:
+  - name: http
+    protocol: TCP
+    port: 1880
+    targetPort: 1880
+  selector:
+    app: acme-web
+
